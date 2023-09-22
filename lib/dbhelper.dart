@@ -1,13 +1,14 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:crudflutter/pages/lista.dart';
+import 'package:crudflutter/models.dart';
 
 class DBHelper {
   static DBHelper? _instance;
-
-  late Database database;
+  late Database _database;
 
   init() async {
-    database = openDatabase(
+    _database = await openDatabase(
       join(await getDatabasesPath(), "banco.db"),
       version: 1,
       onCreate: (db, version) async {
@@ -22,18 +23,26 @@ class DBHelper {
     ) as Database;
   }
 
-  static getInstance() async{
+  static Future<DBHelper> getInstance() async{
     if (_instance == null){
         _instance = DBHelper();
-        _instance?.init();
+        await _instance?.init();
     }
     return _instance!;
   }
 
-  static Future<List<contatos> getAllContatos() async {
-    DBHelper helper = await DBHelper.getInstance();
-
-    List<Map<String, Object?>> rows = await helper.database.query('contatos');
+  Future<List<Contato>> getAllContatos() async {
+    List<Map<String, Object?>> rows = await _database.query('contatos');
     List<Contato> contatos = List.empty();
+
+    for (var element in rows) {
+      contatos.add(Contato(
+        id: element["id"] as int,
+        nome: element["nome"] as String,
+        telefone: element["telefone"] as String));
+    }
+
+    return contatos;
+    
   }
 }
